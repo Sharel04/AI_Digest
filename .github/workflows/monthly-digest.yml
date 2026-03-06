@@ -1,0 +1,39 @@
+name: Monthly AI Digest
+
+on:
+  schedule:
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: storage
+          key: ai-digest-memory
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install -r requirements.txt
+
+      - name: Run AI Digest Agent
+        env:
+          LLM_PROVIDER: groq
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_MODEL: llama-3.3-70b-versatile
+          SEARCH_PROVIDER: tavily
+          SEARCH_API_KEY: ${{ secrets.SEARCH_API_KEY }}
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: '587'
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+        run: python main.py
